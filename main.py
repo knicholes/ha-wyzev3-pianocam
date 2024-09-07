@@ -1,47 +1,68 @@
-import queue
 import os
-from stream_driver import StreamDriver
+import signal
+import time
+import logging
+import queue
 from audio_detection_service import AudioDetectionService
 from pose_detection_service import PoseDetectionService
-from monitor import Monitor
-import logging
+from stream_driver import StreamDriver
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 
 def main():
-    # Read secrets from environment variables or command line arguments
-    rtsp_url = os.getenv('RTSP_URL')  # Or use argparse for command-line args
+    logging.info("Entered main function...")
 
+    # Check if the RTSP_URL environment variable is set
+    rtsp_url = os.getenv('RTSP_URL')
+    logging.info(f"RTSP_URL: {rtsp_url}")
+    
     if not rtsp_url:
-        logging.error("RTSP URL not provided.")
+        logging.error("RTSP URL not provided. Exiting.")
         return
 
-    # Create queues for communication
-    audio_queue = queue.Queue()
-    video_queue = queue.Queue()
-    result_queue = queue.Queue()
+    # Use queue.Queue for thread-safe communication between components
+    audio_queue = queue.Queue(maxsize=10)  # Audio queue with a max size of 10 items
+    video_queue = queue.Queue(maxsize=10)  # Video queue with a max size of 10 items
+    result_queue = queue.Queue(maxsize=20)  # Results queue
 
-    # Initialize components
+    # Initialize and start the services
+    logging.info("Initializing services...")
     stream_driver = StreamDriver(rtsp_url, audio_queue, video_queue)
     audio_service = AudioDetectionService(audio_queue, result_queue)
     pose_service = PoseDetectionService(video_queue, result_queue)
-    monitor = Monitor(result_queue)
 
-    # Start the system
     stream_driver.start()
     audio_service.start()
     pose_service.start()
-    monitor.start()
 
-    try:
-        while True:
-            pass  # Keep the main thread alive
-    except KeyboardInterrupt:
-        logging.info("Shutting down services.")
+    logging.info("Services have been started.")
+
+    # Signal handling for shutdown
+    def shutdown(signum, frame):
+        logging.info("Received shutdown signal. Shutting down...")
         stream_driver.stop()
         audio_service.stop()
         pose_service.stop()
-        monitor.stop()
+
+    signal.signal(signal.SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+
+    # Keep the program alive while the services are running
+    logging.info("Entering main loop...")
+    try:
+        while not stream_driver.stop_event.is_set() or not audio_service.stop_event.is_set() or not pose_service.stop_event.is_set():
+            time.sleep(1)
+    except Exception as e:
+        logging.error(f"Error in the main loop: {e}")
+    finally:
+        logging.info("Exiting main loop.")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logging.fatal(f"Fatal error: {e}")
