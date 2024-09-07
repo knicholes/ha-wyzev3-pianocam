@@ -28,3 +28,29 @@ A modular design following SOLID principles.
 A well-structured "main" script that coordinates the pose detection, audio detection, and timing logic.
 Integration points for storing data and updating Home Assistant.
 Clear and maintainable code with appropriate error handling and logging.
+
+######################
+
+I need help designing and writing a Python-based system that processes an RTSP stream for both audio and video detection services, adhering to SOLID principles and clean, production-ready code.
+
+Requirements:
+
+The system will have an RTSP stream (URL provided) that needs to be consumed only once.
+Audio data is passed to an audio detection service, which detects whether a piano is being played.
+Video data is passed to a pose detection service, which detects if someone is sitting at the piano.
+Both detection services must run concurrently, independently of each other, and their results should be shared via a queue.
+A central monitor consumes detection results from the queue and sends updates to external systems (e.g., Home Assistant or Prometheus).
+The system should be modular, extensible, and follow Python best practices, including proper error handling, logging, and testability.
+Key Design Decisions:
+
+A Stream Driver class will handle the RTSP stream, extracting both audio and video.
+Detection services (audio and pose) will be separate classes that handle only their respective data, following the Single Responsibility Principle.
+A shared queue will act as the data pipeline for both detection services and the central monitor.
+Use Python threads to run the stream driver and central monitor in parallel.
+Adhere to SOLID principles (SRP, OCP, LSP, ISP, DIP) and Python best practices, making the code easily maintainable, testable, and extensible.
+Additional Considerations:
+
+Ensure the code has proper logging and error handling to make it production-ready.
+The system should be scalable, so consider a design that can accommodate future additions (e.g., adding new detection methods or integrating with other external systems).
+Focus on clean, readable code, and provide clear documentation and comments.
+Please provide well-structured Python code with appropriate comments that follows these principles
