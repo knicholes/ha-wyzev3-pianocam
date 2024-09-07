@@ -1,0 +1,43 @@
+@startuml
+title Piano Detection System Architecture
+
+actor User as "User"
+rectangle "Wyze V3 Camera" as Camera {
+    Camera -> "RTSP Stream" : Sends video/audio stream
+}
+
+rectangle "Audio Detection" {
+    rectangle "FFmpegAudioStream" as FFAudio
+    rectangle "PianoSoundDetector" as SoundDetector
+    FFAudio -> SoundDetector : Send audio chunks
+    SoundDetector --> "True/False" : Detects piano sound
+}
+
+rectangle "Pose Detection" {
+    rectangle "RTSPStream" as RTSPStream
+    rectangle "PoseDetector" as PoseDetector
+    rectangle "PianoPlayerDetector" as PlayerDetector
+    RTSPStream -> PoseDetector : Send video frame
+    PoseDetector -> PlayerDetector : Send pose landmarks
+    PlayerDetector --> "True/False" : Detects playing pose
+}
+
+rectangle "Detection Apps" {
+    rectangle "AudioDetectionApp" as AudioApp
+    rectangle "PoseDetectionApp" as PoseApp
+    AudioApp --> FFAudio : Access audio stream
+    PoseApp --> RTSPStream : Access video stream
+    AudioApp --> "True/False" : Audio detected?
+    PoseApp --> "True/False" : Pose detected?
+}
+
+rectangle "PianoDetectionManager" as Manager {
+    Manager -> AudioApp : Runs audio detection
+    Manager -> PoseApp : Runs pose detection
+    Manager -> "Home Assistant" : Send playing time via REST API
+    Manager --> "True/False" : Monitors audio/pose states
+}
+
+User -> Manager : Triggers detection
+
+@enduml

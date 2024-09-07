@@ -1,0 +1,30 @@
+I am working on a project to track how long my child is playing the piano using various technologies. I have a Wyze V3 camera that provides an RTSP stream of the piano area. My goal is to use this video stream to detect when my child is sitting at the piano and actively playing, using both audio and pose detection techniques. I want to build a solution that is flexible, maintainable, and adheres to software engineering best practices.
+
+Technologies Being Used:
+
+Wyze V3 camera: Provides RTSP video stream.
+Python: For scripting and implementation.
+FFmpeg and PyDub: For audio detection (detecting piano sounds from the RTSP stream).
+OpenCV (cv2.VideoCapture): For capturing the video stream from the camera.
+MediaPipe: For detecting pose landmarks in the video stream.
+Home Assistant: Running on a server for logging, visualization, and automation based on detected piano playing.
+Requirements:
+
+Pose Detection: The system should detect when my child is in a "playing piano" pose, not just sitting at the piano.
+Audio Detection: Detect the sound of the piano being played using FFmpeg and PyDub.
+Buffer Time: Include a buffer (e.g., 30 seconds to 1 minute) to account for brief interruptions, such as page turns.
+Data Storage: Store playing time data for later analysis and visualization.
+Integration with Home Assistant: Make the playing time easily visible in Home Assistant.
+Maintainability: The code should be modular, follow Python best practices, and adhere to SOLID programming principles.
+Extensibility: The system should be designed to allow for easy modifications and extensions, such as adding new detection methods or stream sources.
+Current Challenges:
+
+The system is not storing the detected playtime data anywhere.
+There's no integration with Home Assistant yet.
+There is no "main" script or driver tying everything together, leading to disjointed components.
+Expected Output: Generate a Python-based solution that addresses the above requirements. The solution should include:
+
+A modular design following SOLID principles.
+A well-structured "main" script that coordinates the pose detection, audio detection, and timing logic.
+Integration points for storing data and updating Home Assistant.
+Clear and maintainable code with appropriate error handling and logging.

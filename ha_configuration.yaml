@@ -1,0 +1,59 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+stream:
+
+camera:
+  - platform: ffmpeg
+    name: Wyze Cam
+    input: rtsp://pianocam:pianocam@192.168.86.35/live
+
+input_number:
+  piano_playing_time:
+    name: Piano Playing Time
+    initial: 0
+    min: 0
+    max: 1000
+    step: 1
+    unit_of_measurement: minutes
+
+automation:
+  - alias: Reset Piano Playing Time Daily
+    trigger:
+      platform: time
+      at: '00:00:00'  # This triggers the automation at midnight every day
+    action:
+      service: input_number.set_value
+      target:
+        entity_id: input_number.piano_playing_time
+      data:
+        value: 0  # Reset playing time to zero
+
+type: entities
+entities:
+  - entity: input_number.piano_playing_time
+    name: Total Piano Playing Time
+    
+type: history-graph
+entities:
+  - entity: input_number.piano_playing_time
+hours_to_show: 24
+refresh_interval: 60
+
+# automation:
+#   - alias: Piano Practice Completed
+#     trigger:
+#       platform: numeric_state
+#       entity_id: input_number.piano_playing_time
+#       above: 30  # Notify when 30 minutes of practice is completed
+#     action:
+#       service: notify.mobile_app_<your_device_name>
+#       data:
+#         message: "Piano practice for 30 minutes completed!"
