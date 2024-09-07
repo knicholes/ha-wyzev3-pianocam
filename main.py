@@ -6,6 +6,7 @@ import queue
 from audio_detection_service import AudioDetectionService
 from pose_detection_service import PoseDetectionService
 from stream_driver import StreamDriver
+from monitor import Monitor  # Import the Monitor class
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +36,10 @@ def main():
     audio_service = AudioDetectionService(audio_queue, result_queue)
     pose_service = PoseDetectionService(video_queue, result_queue)
 
+    # Initialize and start the Monitor to consume the result_queue
+    monitor = Monitor(result_queue)  # Create the Monitor instance
+    monitor.start()  # Start the Monitor
+
     stream_driver.start()
     audio_service.start()
     pose_service.start()
@@ -47,6 +52,7 @@ def main():
         stream_driver.stop()
         audio_service.stop()
         pose_service.stop()
+        monitor.stop()  # Stop the monitor as well
 
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)

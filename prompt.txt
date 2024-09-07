@@ -31,7 +31,7 @@ Clear and maintainable code with appropriate error handling and logging.
 
 ######################
 
-I need help designing and writing a Python-based system that processes an RTSP stream for both audio and video detection services, adhering to SOLID principles and clean, production-ready code.
+I need help designing and writing a Python-based system that processes an RTSP stream for both audio and video detection services, adhering to SOLID principles and clean, production-ready code. Ensure "secrets" are read from the system's environment variables or passed in as a commandline argument.
 
 Requirements:
 
@@ -43,7 +43,7 @@ A central monitor consumes detection results from the queue and sends updates to
 The system should be modular, extensible, and follow Python best practices, including proper error handling, logging, and testability.
 Key Design Decisions:
 
-A Stream Driver class will handle the RTSP stream, extracting both audio and video.
+A Stream Driver class will handle the RTSP stream, extracting the most recent input of both audio and video.
 Detection services (audio and pose) will be separate classes that handle only their respective data, following the Single Responsibility Principle.
 A shared queue will act as the data pipeline for both detection services and the central monitor.
 Use Python threads to run the stream driver and central monitor in parallel.
@@ -52,5 +52,5 @@ Additional Considerations:
 
 Ensure the code has proper logging and error handling to make it production-ready.
 The system should be scalable, so consider a design that can accommodate future additions (e.g., adding new detection methods or integrating with other external systems).
-Focus on clean, readable code, and provide clear documentation and comments.
+Focus on clean, readable, testable code, and provide clear documentation and comments.
 Please provide well-structured Python code with appropriate comments that follows these principles
