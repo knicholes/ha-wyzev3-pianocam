@@ -51,6 +51,7 @@ A central monitor consumes detection results from processing the audio and video
 The system should be modular, extensible, and follow Python best practices, including proper error handling, logging, and testability.
 Key Design Decisions:
 There is one RTSP stream coming from a Wyze camera.
+The Wyze camera is streaming audio in the pcm_alaw format at 16,000 Hz.
 Adhere to SOLID principles (SRP, OCP, LSP, ISP, DIP) and Python best practices, making the code easily maintainable, testable, and extensible.
 Ensure that the processing of the audio and video is bug-free and robust. There is a single RTSP stream. Ensure that handling it is resilient, efficient, and responsive. If queues are used, ensure they don't fill, and if they do, make sure that the freshest data is put into them and overwrite the old data.
 If there is multithreading or multiprocessing or any other kind of concurrent programming, ensure that it is done correctly and thoughtfully and only if necessary.
@@ -66,3 +67,11 @@ Please provide well-structured Python code with appropriate comments that follow
 When there are multiple files, break out the code into each individual file.  Do not put all of the code into a single file.
 The RTSP stream URL can be found in the environment variable `RTSP_URL`.
 The HomeAssistant URL can be found in the environment variable `HA_URL`
+When pressing CTRL+c on the keyboard, the program should exit.
+
+Do not mock out the functions with the one exception of writing the result to HomeAssistant.  
+* The RTSPStream needs to actually get the audio from the stream and detect if a piano is being played. 
+* The DetectionMonitor needs to work as if the audio and pose detectors were real, because they are.
+* The PoseDetectionApp needs to actually get real video from the RTSP stream and detect a pose of shoulders being above a waist.
+* The AudioDetectionApp needs to actually get real audio from the stream and process it to determine if a piano is being played.
+
