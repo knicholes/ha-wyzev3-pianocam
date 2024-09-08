@@ -22,35 +22,47 @@ Current Challenges:
 The system is not storing the detected playtime data anywhere.
 There's no integration with Home Assistant yet.
 There is no "main" script or driver tying everything together, leading to disjointed components.
-Expected Output: Generate a Python-based solution that addresses the above requirements. The solution should include:
+Expected Output: Generate a Python-based solution that addresses the above requirements. 
+
+The solution should include:
 
 A modular design following SOLID principles.
 A well-structured "main" script that coordinates the pose detection, audio detection, and timing logic.
 Integration points for storing data and updating Home Assistant.
 Clear and maintainable code with appropriate error handling and logging.
+A solid, straight-forward, bug-free way to process the stream for audio and video without building up a huge lag and getting the wrong results.
+
+The RTSP stream URL can be found in the environment variable `RTSP_URL`.
+The HomeAssistant URL can be found in the environment variable `HA_URL`
+
 
 ######################
 
-I need help designing and writing a Python-based system that processes an RTSP stream for both audio and video detection services, adhering to SOLID principles and clean, production-ready code. Ensure "secrets" are read from the system's environment variables or passed in as a commandline argument.
+I need help designing and writing a Python-based system that processes an RTSP stream for both audio and video detection services, adhering to SOLID principles and clean, production-ready code. Ensure "secrets" are read from the system's environment variables.
+The entire goal of this program is to detect whether a child is playing piano and for how long.
 
 Requirements:
 
-The system will have an RTSP stream (URL provided) that needs to be consumed only once.
-Audio data is passed to an audio detection service, which detects whether a piano is being played.
-Video data is passed to a pose detection service, which detects if someone is sitting at the piano.
-Both detection services must run concurrently, independently of each other, and their results should be shared via a queue.
-A central monitor consumes detection results from the queue and sends updates to external systems (e.g., Home Assistant or Prometheus).
+The system will have an RTSP stream (URL provided in an env variable).
+An audio detection service will be written to detects whether a piano is being played.
+A pose detection service will be written, which detects if someone is sitting at the piano.
+
+A central monitor consumes detection results from processing the audio and video and sends updates to external systems (specifically, Home Assistant).
 The system should be modular, extensible, and follow Python best practices, including proper error handling, logging, and testability.
 Key Design Decisions:
-
-A Stream Driver class will handle the RTSP stream, extracting the most recent input of both audio and video.
-Detection services (audio and pose) will be separate classes that handle only their respective data, following the Single Responsibility Principle.
-A shared queue will act as the data pipeline for both detection services and the central monitor.
-Use Python threads to run the stream driver and central monitor in parallel.
+There is one RTSP stream coming from a Wyze camera.
 Adhere to SOLID principles (SRP, OCP, LSP, ISP, DIP) and Python best practices, making the code easily maintainable, testable, and extensible.
-Additional Considerations:
+Ensure that the processing of the audio and video is bug-free and robust. There is a single RTSP stream. Ensure that handling it is resilient, efficient, and responsive. If queues are used, ensure they don't fill, and if they do, make sure that the freshest data is put into them and overwrite the old data.
+If there is multithreading or multiprocessing or any other kind of concurrent programming, ensure that it is done correctly and thoughtfully and only if necessary.
+Testing the pose detection should be possible separately from the audio detection.
+Testing the audio detection should be possible separately from the pose detection.
+The real code should be able to be run to test each processing separately using the real RTSP stream.
 
+Additional Considerations:
 Ensure the code has proper logging and error handling to make it production-ready.
 The system should be scalable, so consider a design that can accommodate future additions (e.g., adding new detection methods or integrating with other external systems).
 Focus on clean, readable, testable code, and provide clear documentation and comments.
-Please provide well-structured Python code with appropriate comments that follows these principles
+Please provide well-structured Python code with appropriate comments that follows these principles.
+When there are multiple files, break out the code into each individual file.  Do not put all of the code into a single file.
+The RTSP stream URL can be found in the environment variable `RTSP_URL`.
+The HomeAssistant URL can be found in the environment variable `HA_URL`
