@@ -229,16 +229,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-**Contact Information**
-
-For questions, issues, or contributions, please contact:
-
-- **Name**: Your Name
-- **Email**: your.email@example.com
-- **GitHub**: [yourusername](https://github.com/yourusername)
-
----
-
 **Disclaimer**
 
 This application is intended for educational and personal use. Ensure compliance with local laws and regulations regarding audio and video recording and monitoring.

@@ -54,3 +54,80 @@ Ensure the code has proper logging and error handling to make it production-read
 The system should be scalable, so consider a design that can accommodate future additions (e.g., adding new detection methods or integrating with other external systems).
 Focus on clean, readable, testable code, and provide clear documentation and comments.
 Please provide well-structured Python code with appropriate comments that follows these principles
+
+################
+
+Objective:
+
+Design and implement a Python-based system that processes an RTSP stream for both audio and video detection services to detect whether a child is playing piano and for how long.
+
+Key Requirements:
+
+Single RTSP Stream Handling:
+
+Use a single RTSP stream to avoid multiple connections to the camera, which can cause bandwidth issues or stream starvation.
+Efficiently demultiplex the stream to handle audio and video separately without latency or data staleness.
+Fresh Data Processing:
+
+Ensure that both audio and video detection services work on the freshest possible data.
+Implement buffering strategies that prevent latency and ensure timely detection.
+Modular and Extensible Design:
+
+Adhere strictly to SOLID principles (SRP, OCP, LSP, ISP, DIP) and Python best practices.
+The system should be easily maintainable, testable, and extensible for future enhancements.
+Concurrent Processing:
+
+Use appropriate concurrency mechanisms to process audio and video data simultaneously without blocking or resource contention.
+Avoid unnecessary multithreading or multiprocessing; use them only if necessary and in a thread-safe manner.
+Robustness and Error Handling:
+
+Implement comprehensive error handling and logging to make the system production-ready.
+Ensure the system recovers gracefully from interruptions or exceptions.
+Configurability and Security:
+
+All configurable parameters, including URLs and tokens, should be sourced from environment variables.
+Avoid hardcoding any sensitive information within the code.
+Testability:
+
+Allow testing of the pose detection and audio detection independently using the real RTSP stream.
+Ensure that unit tests can be written for each component.
+Home Assistant Integration:
+
+The system should send detection updates to Home Assistant.
+Home Assistant URL and tokens should be configurable via environment variables.
+Additional Insights from Previous Iterations:
+
+Single Stream Demultiplexing:
+
+Reading from the same RTSP feed in multiple places can cause issues such as stream starvation or increased latency.
+To prevent this, read the RTSP stream once and distribute the data to audio and video processors.
+Efficient Frame Handling:
+
+Implement thread-safe queues or buffers to share frames between the stream reader and processors.
+Ensure that queues do not overflow; use strategies like overwriting old data with fresh data.
+Latency Minimization:
+
+Optimize buffering to balance between having enough data for detection and minimizing latency.
+Use appropriate synchronization primitives to coordinate between threads without causing delays.
+Final Design Approach:
+
+RTSP Stream Reader:
+
+Create a single RTSPStream class that reads from the RTSP feed and demultiplexes audio and video packets.
+Use thread-safe queues to distribute frames to audio and video detection services.
+Detection Services:
+
+AudioDetectionService and PoseDetectionService consume frames from their respective queues.
+Implement buffering strategies within the services to process data effectively.
+Concurrency:
+
+Use threading to allow the stream reader and detection services to run concurrently.
+Ensure thread safety when accessing shared resources.
+Configuration:
+
+Use environment variables for all configurable parameters, including RTSP URL, Home Assistant URL, and tokens.
+Utilize a configuration module to centralize configuration management.
+Error Handling and Logging:
+
+Implement detailed logging throughout the system for debugging and monitoring.
+Handle exceptions gracefully, with retries or clean shutdowns where appropriate.

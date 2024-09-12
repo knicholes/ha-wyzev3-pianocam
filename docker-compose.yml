@@ -9,9 +9,6 @@ services:
       - RTSP_URL=${RTSP_URL}
       - HA_URL=${HA_URL}
       - HA_TOKEN=${HA_TOKEN}
-    # Optionally, you can limit resources
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '1.0'
-    #       memory: 512M
+      - PYTHONDONTWRITEBYTECODE=1  # Prevents writing .pyc files
+    # volumes:
+    #   - ./:/app
