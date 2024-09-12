@@ -1,101 +1,67 @@
+# audio_detection_service.py
 import threading
-import time
-import queue
-
-from absl import logging
+import logging
 import numpy as np
-from scipy.fftpack import fft
-from scipy.signal.windows import hann
+import librosa
 
 class AudioDetectionService:
-    def __init__(self, audio_queue, result_queue, piano_threshold=5000):
-        self.audio_queue = audio_queue
-        self.result_queue = result_queue
-        self.stop_event = threading.Event()
-        self.piano_threshold = piano_threshold
-        self.last_process_time = 0  # Tracks when the last audio result was sent
+    def __init__(self, rtsp_stream):
+        self.rtsp_stream = rtsp_stream
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.piano_playing = False
+        self.running = False
+        self.callback = None
+        self.buffer_duration = 2  # seconds
 
     def start(self):
-        logging.info("Audio Detection service started.")
-        threading.Thread(target=self._run, daemon=True).start()
-
-    def _run(self):
-        try:
-            while not self.stop_event.is_set():
-                try:
-                    # Use blocking get with a timeout to avoid excessive CPU usage
-                    audio_data = self.audio_queue.get(timeout=1)
-
-                    # Only add results to the queue once per second
-                    if time.time() - self.last_process_time >= 1.0:
-                        if self._detect_piano_playing(audio_data):
-                            self._add_result_to_queue({'type': 'audio', 'status': 'playing'})
-                            logging.debug("Piano detected.")
-                        else:
-                            self._add_result_to_queue({'type': 'audio', 'status': 'not playing'})
-                            logging.debug("No piano detected.")
-                        
-                        self.last_process_time = time.time()
-
-                except queue.Empty:
-                    logging.debug("Audio queue is empty, waiting for data.")
-                except queue.Full:
-                    logging.warning("Result queue is full, skipping result.")
-                time.sleep(0.05)  # Reduce sleep time for better responsiveness
-        except Exception as e:
-            logging.error(f"AudioDetectionService error: {e}")
-        finally:
-            logging.info("AudioDetectionService stopped.")
-
-    def _add_result_to_queue(self, result):
-        """Adds audio detection result to the result queue."""
-        try:
-            if not self.result_queue.full():
-                self.result_queue.put_nowait(result)
-                logging.debug("Added result to queue.")
-            else:
-                logging.warning("Result queue is full, skipping result.")
-        except queue.Full:
-            logging.warning("Result queue is full, skipping result.")
-
-    def _detect_piano_playing(self, audio_data):
-        try:
-            if len(audio_data) == 0:
-                logging.error("Received empty audio data.")
-                return False
-
-            # Apply a Hann window to reduce spectral leakage
-            windowed_audio = audio_data * hann(len(audio_data))
-
-            # Perform a Fourier Transform
-            fft_result = fft(windowed_audio)
-            sample_rate = 44100  # Assuming a 44100 Hz sample rate
-            freqs = np.fft.fftfreq(len(fft_result), 1 / sample_rate)
-            magnitude = np.abs(fft_result) / len(audio_data)
-
-            # Only consider positive frequencies
-            positive_freq_indices = np.where(freqs > 0)
-            freqs = freqs[positive_freq_indices]
-            magnitude = magnitude[positive_freq_indices]
-
-            # Define the piano frequency range (27.5 Hz to 4186 Hz)
-            min_piano_freq = 27.5
-            max_piano_freq = 4186.0
-            piano_freq_indices = np.where((freqs >= min_piano_freq) & (freqs <= max_piano_freq))
-
-            if len(piano_freq_indices[0]) == 0:
-                logging.debug("No piano frequencies found in audio data.")
-                return False
-
-            # Check if any magnitudes within the piano range exceed the threshold
-            if np.max(magnitude[piano_freq_indices]) > 0.01:
-                return True
-            else:
-                return False
-        except Exception as e:
-            logging.error(f"Error in piano detection: {e}")
-            return False
+        self.running = True
+        threading.Thread(target=self._process_audio, daemon=True).start()
+        self.logger.info("Audio detection service started.")
 
     def stop(self):
-        self.stop_event.set()
-        logging.info("Audio Detection service stop requested.")
+        self.running = False
+        self.logger.info("Audio detection service stopped.")
+
+    def _process_audio(self):
+        sample_rate = 44100  # Adjust based on actual sample rate
+        buffer_size = int(self.buffer_duration * sample_rate)
+        audio_buffer = np.array([], dtype=np.float32)
+
+        while self.running:
+            frames = self.rtsp_stream.get_audio_frames()
+            if frames:
+                for frame in frames:
+                    # Convert to mono if necessary
+                    if frame.ndim > 1:
+                        frame = np.mean(frame, axis=0)
+                    audio_buffer = np.concatenate((audio_buffer, frame))
+                # Keep the buffer size within the desired duration
+                if len(audio_buffer) > buffer_size:
+                    audio_buffer = audio_buffer[-buffer_size:]
+
+                if len(audio_buffer) >= buffer_size:
+                    is_piano = self._detect_piano(audio_buffer, sample_rate)
+                    if is_piano != self.piano_playing:
+                        self.piano_playing = is_piano
+                        if self.callback:
+                            self.callback(self.piano_playing)
+            threading.Event().wait(0.5)  # Adjust processing interval as needed
+
+    def _detect_piano(self, audio_data, sr):
+        try:
+            # Resample if necessary
+            if sr != 22050:
+                audio_data = librosa.resample(audio_data, orig_sr=sr, target_sr=22050)
+                sr = 22050
+            # Perform detection (placeholder logic)
+            spectral_centroid = librosa.feature.spectral_centroid(y=audio_data, sr=sr)
+            mean_centroid = np.mean(spectral_centroid)
+            is_piano = 1000 < mean_centroid < 4000
+            self.logger.debug(f"Spectral centroid: {mean_centroid}, Piano playing: {is_piano}")
+            return is_piano
+        except Exception as e:
+            self.logger.error(f"Error in piano detection: {e}")
+            return False
+
+    def set_callback(self, callback):
+        self.callback = callback

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  piano_detection:
+    build: .
+    container_name: piano_detection
+    restart: unless-stopped
+    environment:
+      - RTSP_URL=${RTSP_URL}
+      - HA_URL=${HA_URL}
+      - HA_TOKEN=${HA_TOKEN}
+    # Optionally, you can limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M

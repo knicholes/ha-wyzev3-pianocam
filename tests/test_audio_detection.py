@@ -1,14 +1,14 @@
-# test_pose_detection.py
+# test_audio_detection.py
 from logging_config import setup_logging
 from config import RTSP_URL
 from rtsp_stream import RTSPStream
-from pose_detection_service import PoseDetectionService
+from audio_detection_service import AudioDetectionService
 import logging
 import threading
 
 def main():
     setup_logging()
-    logger = logging.getLogger('TestPoseDetection')
+    logger = logging.getLogger('TestAudioDetection')
 
     if not RTSP_URL:
         logger.error("RTSP_URL must be set in environment variables.")
@@ -17,19 +17,19 @@ def main():
     rtsp_stream = RTSPStream(RTSP_URL)
     rtsp_stream.start()
 
-    def pose_callback(status):
-        logger.info(f"Pose status: {'Person sitting' if status else 'No person detected'}")
+    def audio_callback(status):
+        logger.info(f"Audio status: {'Piano playing' if status else 'No piano playing'}")
 
-    pose_service = PoseDetectionService(rtsp_stream)
-    pose_service.set_callback(pose_callback)
-    pose_service.start()
+    audio_service = AudioDetectionService(rtsp_stream)
+    audio_service.set_callback(audio_callback)
+    audio_service.start()
 
     try:
         threading.Event().wait()
     except KeyboardInterrupt:
-        logger.info("Shutting down pose detection service...")
+        logger.info("Shutting down audio detection service...")
         rtsp_stream.stop()
-        pose_service.stop()
+        audio_service.stop()
 
 if __name__ == "__main__":
     main()

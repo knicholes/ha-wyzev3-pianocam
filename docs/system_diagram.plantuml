@@ -1,0 +1,23 @@
+@startuml
+
+skinparam componentStyle rectangle
+
+actor "Wyze Camera" as Camera
+
+node "RTSPStream" as RTSPStream
+component "AudioDetectionService" as AudioService
+component "PoseDetectionService" as PoseService
+component "DetectionMonitor" as Monitor
+component "Home Assistant" as HomeAssistant
+
+Camera --> RTSPStream : RTSP Stream
+
+RTSPStream --> AudioService : Provides Audio Frames
+RTSPStream --> PoseService : Provides Video Frames
+
+AudioService --> Monitor : Piano Playing Status
+PoseService --> Monitor : Person Sitting Status
+
+Monitor --> HomeAssistant : Sends Status Updates
+
+@enduml
